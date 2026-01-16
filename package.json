@@ -14,6 +14,7 @@
     "react-dom": "^19.2.3"
   },
   "devDependencies": {
+    "@kilo-code/error-handling": "file:lib/kilo-code",
     "@playwright/test": "^1.57.0",
     "@types/node": "^22.14.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
@@ -23,6 +24,7 @@
     "eslint-plugin-react": "^7.35.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.9",
+    "marketingportal-onboarding": "file:",
     "prettier": "^3.3.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"

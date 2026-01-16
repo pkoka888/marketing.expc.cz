@@ -848,6 +848,10 @@ class PostgreSQLMCPServer {
         await healthServer.start();
       }
 
+      // Auto-connect to database
+      logger.info('Auto-connecting to database...');
+      await databaseManager.connect();
+
       // Connect MCP server
       const transport = new StdioServerTransport();
       await this.server.connect(transport);

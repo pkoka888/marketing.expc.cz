@@ -2,8 +2,20 @@
   "name": "@kilo-code/error-handling",
   "version": "1.0.0",
   "description": "Comprehensive error handling, retry logic, and recovery mechanisms for applications",
-  "main": "index.ts",
-  "types": "index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": "./dist/index.js",
+    "./logger": "./dist/logger.js",
+    "./circuit-breaker": "./dist/circuit-breaker.js",
+    "./history-manager": "./dist/history-manager.js",
+    "./response-validator": "./dist/response-validator.js",
+    "./retry": "./dist/retry.js",
+    "./timeout-handler": "./dist/timeout-handler.js"
+  },
   "scripts": {
     "build": "tsc",
     "test": "jest",

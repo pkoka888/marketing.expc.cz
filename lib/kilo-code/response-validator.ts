@@ -111,7 +111,7 @@ export class ResponseValidator {
         // Rule execution failed - treat as error
         errors.push({
           rule: rule.name,
-          message: `Rule execution failed: ${error.message}`,
+          message: `Rule execution failed: ${(error as any).message}`,
           severity: 'error',
         });
         score -= 15;

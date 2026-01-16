@@ -360,6 +360,19 @@ export default function App() {
               </button>
               {openCard === item.id && (
                 <div className="px-10 pb-12 pl-[7rem] animate-fadeIn">
+                   <div className="flex items-center gap-4 mb-8">
+                     {item.directLink && (
+                       <a 
+                         href={item.directLink} 
+                         target="_blank" 
+                         rel="noopener noreferrer"
+                         className="inline-flex items-center gap-3 px-6 py-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-600 font-bold text-sm hover:bg-blue-100 transition-all"
+                       >
+                         <ExternalLink className="w-4 h-4" />
+                         Přejít na nastavení {item.title}
+                       </a>
+                     )}
+                   </div>
                    <ol className="space-y-8">
                     {item.steps.map((step, idx) => (
                       <li key={idx} className="flex gap-8 items-start group/step">

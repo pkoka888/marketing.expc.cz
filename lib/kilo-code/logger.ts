@@ -305,6 +305,28 @@ export class KiloCodeLogger {
     this.log(entry);
   }
 
+  // Standard logging methods compatibility
+  public debug(message: string, meta?: any): void {
+    this.log(this.createLogEntry('debug', message, this.createContext(), { metadata: meta }));
+  }
+
+  public info(message: string, meta?: any): void {
+    this.log(this.createLogEntry('info', message, this.createContext(), { metadata: meta }));
+  }
+
+  public warn(message: string, meta?: any): void {
+    this.log(this.createLogEntry('warn', message, this.createContext(), { metadata: meta }));
+  }
+
+  public error(message: string, meta?: any): void {
+    this.log(this.createLogEntry('error', message, this.createContext(), { error: meta }));
+  }
+
+  public createLogger(name: string): KiloCodeLogger {
+    // Return self for now, simplified
+    return this;
+  }
+
   // Utility methods for log analysis
   getLogsByCorrelationId(correlationId: string): LogEntry[] {
     return this.logBuffer.filter(entry => entry.context.correlationId === correlationId);

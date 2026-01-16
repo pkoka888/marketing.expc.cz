@@ -13,6 +13,8 @@ const {
   circuitBreakerRegistry,
   retryConfigs,
 } = require('@kilo-code/error-handling');
+const { isValidApiKey } = require('./lib/security-middleware.cjs');
+const { loadConfig } = require('./config');
 
 class GitHubMCPServer {
   constructor() {
@@ -61,6 +63,8 @@ class GitHubMCPServer {
       },
     });
 
+    this.expectedApiKey = this.config.apiKey;
+
     this.setupToolHandlers();
 
     this.logger.logAPIResponse(
@@ -86,6 +90,26 @@ class GitHubMCPServer {
         return v.toString(16);
       }
     );
+  }
+
+  _authenticateToolRequest(incomingApiKey) {
+    if (!this.expectedApiKey) {
+      throw new Error(
+        'Server not configured with an API key. Please set one in the environment.'
+      );
+    }
+    if (incomingApiKey !== this.expectedApiKey) {
+      throw new Error('Unauthorized: Invalid or missing API key.');
+    }
+  }
+
+  _authenticatedToolHandler(originalHandler) {
+    return async (args) => {
+      // Assuming apiKey is passed as part of the args for stdio transport
+      const { apiKey, ...restArgs } = args;
+      this._authenticateToolRequest(apiKey);
+      return await originalHandler(restArgs);
+    };
   }
 
   /**
@@ -127,6 +151,7 @@ class GitHubMCPServer {
             .max(this.config.maxIssuesLimit)
             .default(this.config.defaultIssuesLimit)
             .describe('Maximum number of issues to return'),
+          apiKey: z.string().optional().describe('API key for authentication'),
         },
         outputSchema: {
           issues: z.array(
@@ -141,7 +166,8 @@ class GitHubMCPServer {
           ),
         },
       },
-      async (args) => await this.getIssues(args)
+      async (args) =>
+        await this._authenticatedToolHandler(this.getIssues.bind(this))(args)
     );
 
     // Register get_pull_requests tool
@@ -163,6 +189,7 @@ class GitHubMCPServer {
             .max(this.config.maxPullRequestsLimit)
             .default(this.config.defaultPullRequestsLimit)
             .describe('Maximum number of pull requests to return'),
+          apiKey: z.string().optional().describe('API key for authentication'),
         },
         outputSchema: {
           pull_requests: z.array(
@@ -181,7 +208,10 @@ class GitHubMCPServer {
           ),
         },
       },
-      async (args) => await this.getPullRequests(args)
+      async (args) =>
+        await this._authenticatedToolHandler(this.getPullRequests.bind(this))(
+          args
+        )
     );
 
     // Register health_check tool
@@ -199,6 +229,7 @@ class GitHubMCPServer {
             .boolean()
             .default(false)
             .describe('Include configuration status (without sensitive data)'),
+          apiKey: z.string().optional().describe('API key for authentication'),
         },
         outputSchema: {
           status: z.enum(['healthy', 'degraded', 'unhealthy']),
@@ -224,7 +255,8 @@ class GitHubMCPServer {
             .optional(),
         },
       },
-      async (args) => await this.healthCheck(args)
+      async (args) =>
+        await this._authenticatedToolHandler(this.healthCheck.bind(this))(args)
     );
   }
 

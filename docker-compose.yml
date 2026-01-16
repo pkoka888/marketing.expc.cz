@@ -33,7 +33,7 @@ services:
         . .venv/bin/activate &&
         pip install --upgrade pip &&
         pip install -r requirements.txt 2>/dev/null || echo 'No requirements.txt found, creating empty one' &&
-        pip install git+https://github.com/google-gemini/gemini-cli.git &&
+        pip install google-generativeai &&
         echo 'Python service with Gemini CLI ready' &&
         sleep infinity
       "
@@ -53,7 +53,7 @@ services:
     ports:
       - '5432:5432'
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U marketinguser -d marketingportal']
+      test: [ 'CMD-SHELL', 'pg_isready -U marketinguser -d marketingportal' ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -68,7 +68,7 @@ services:
     ports:
       - '6379:6379'
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: [ 'CMD', 'redis-cli', 'ping' ]
       interval: 10s
       timeout: 3s
       retries: 3
@@ -92,12 +92,15 @@ services:
     working_dir: /app
     volumes:
       - ./mcp-servers/github:/app
+      - ./lib:/app/lib
+      - /app/lib/kilo-code/node_modules
     environment:
       - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - API_KEY=${MCP_API_KEY}
     command: sh -c "npm install && npm start"
-    
+
     healthcheck:
-      test: ['CMD', 'node', '-e', "require('./server.js')"]
+      test: [ 'CMD-SHELL', 'ps aux | grep "node server.js" | grep -v grep || exit 1' ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -110,12 +113,14 @@ services:
     working_dir: /app
     volumes:
       - ./mcp-servers/monitoring:/app
+      - ./lib:/app/lib
+      - /app/lib/kilo-code/node_modules
     environment:
       - NODE_ENV=production
     command: sh -c "npm install && npm start"
-    
+
     healthcheck:
-      test: ['CMD', 'node', '-e', "require('./server.js')"]
+      test: [ 'CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1' ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -128,12 +133,14 @@ services:
     working_dir: /app
     volumes:
       - ./mcp-servers/playwright:/app
+      - ./lib:/app/lib
+      - /app/lib/kilo-code/node_modules
     environment:
       - NODE_ENV=production
     command: sh -c "npm install && npm start"
-    
+
     healthcheck:
-      test: ['CMD', 'node', '-e', "require('./server.js')"]
+      test: [ 'CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:8081/health || exit 1' ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -146,6 +153,8 @@ services:
     working_dir: /app
     volumes:
       - ./mcp-servers/postgresql:/app
+      - ./lib:/app/lib
+      - /app/lib/kilo-code/node_modules
     environment:
       - NODE_ENV=production
       - DB_HOST=postgres
@@ -154,9 +163,9 @@ services:
       - DB_USER=marketinguser
       - DB_PASSWORD=${POSTGRES_PASSWORD:-changeme123}
     command: sh -c "npm install && npm start"
-    
+
     healthcheck:
-      test: ['CMD', 'node', '-e', "require('./server.js')"]
+      test: [ 'CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1' ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -172,14 +181,16 @@ services:
     working_dir: /app
     volumes:
       - ./mcp-servers/redis:/app
+      - ./lib:/app/lib
+      - /app/lib/kilo-code/node_modules
     environment:
       - NODE_ENV=production
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     command: sh -c "npm install && npm start"
-    
+
     healthcheck:
-      test: ['CMD', 'node', '-e', "require('./server.js')"]
+      test: [ 'CMD-SHELL', 'ps aux | grep "node server.js" | grep -v grep || exit 1' ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -228,6 +239,7 @@ volumes:
   redis-data:
   prometheus-data:
   grafana-data:
+
 
 secrets:
   gemini_api_key:

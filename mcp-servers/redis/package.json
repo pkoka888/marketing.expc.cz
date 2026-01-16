@@ -16,6 +16,6 @@
     "express": "^4.18.2",
     "ioredis": "^5.4.1",
     "zod": "^3.23.8",
-    "@kilo-code/error-handling": "file:../lib/kilo-code"
+    "@kilo-code/error-handling": "file:./lib/kilo-code"
   }
 }

@@ -465,5 +465,4 @@ export function createHistoryManager(config?: Partial<HistoryConfig>): Conversat
 
 export function estimateTokens(text: string, method: 'simple' | 'advanced' = 'simple'): number {
   const manager = new ConversationHistoryManager({ tokenEstimator: method });
-  return manager['estimateTokens' + (method === 'advanced' ? 'Advanced' : 'Simple')](text);
-}
+      return (manager as any)['estimateTokens' + (method === 'advanced' ? 'Advanced' : 'Simple')](text);}

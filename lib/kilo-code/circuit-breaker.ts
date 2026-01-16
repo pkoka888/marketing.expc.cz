@@ -257,10 +257,10 @@ export class CircuitBreakerRegistry {
 
   createBreaker(name: string, config: Partial<CircuitBreakerConfig> = {}): CircuitBreaker {
     if (this.breakers.has(name)) {
-      throw new Error(`Circuit breaker '${name}' already exists`);
+      return this.breakers.get(name) as CircuitBreaker;
     }
-
-    const breaker = new CircuitBreaker({ ...config, name });
+    const breakerConfig = { ...config, name };
+    const breaker = new CircuitBreaker(breakerConfig);
     this.breakers.set(name, breaker);
     return breaker;
   }

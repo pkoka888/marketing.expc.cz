@@ -121,24 +121,24 @@ function loadConfig() {
     config = configSchema.parse({
       redis: {
         host: process.env.REDIS_HOST,
-        port: process.env.REDIS_PORT,
+        port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : undefined,
         password: process.env.REDIS_PASSWORD,
-        db: process.env.REDIS_DB,
+        db: process.env.REDIS_DB ? parseInt(process.env.REDIS_DB) : undefined,
         username: process.env.REDIS_USERNAME,
-        tls: process.env.REDIS_TLS,
-        cluster: process.env.REDIS_CLUSTER,
+        tls: process.env.REDIS_TLS === 'true',
+        cluster: process.env.REDIS_CLUSTER === 'true',
       },
       server: {
         name: process.env.SERVER_NAME,
         version: process.env.SERVER_VERSION,
         logLevel: process.env.LOG_LEVEL,
-        enableHealthChecks: process.env.ENABLE_HEALTH_CHECKS,
-        healthCheckPort: process.env.HEALTH_CHECK_PORT,
+        enableHealthChecks: process.env.ENABLE_HEALTH_CHECKS !== 'false',
+        healthCheckPort: process.env.HEALTH_CHECK_PORT ? parseInt(process.env.HEALTH_CHECK_PORT) : undefined,
       },
       circuitBreaker: {
-        failureThreshold: process.env.CIRCUIT_BREAKER_FAILURE_THRESHOLD,
-        recoveryTimeout: process.env.CIRCUIT_BREAKER_RECOVERY_TIMEOUT,
-        monitoringPeriod: process.env.CIRCUIT_BREAKER_MONITORING_PERIOD,
+        failureThreshold: process.env.CIRCUIT_BREAKER_FAILURE_THRESHOLD ? parseInt(process.env.CIRCUIT_BREAKER_FAILURE_THRESHOLD) : undefined,
+        recoveryTimeout: process.env.CIRCUIT_BREAKER_RECOVERY_TIMEOUT ? parseInt(process.env.CIRCUIT_BREAKER_RECOVERY_TIMEOUT) : undefined,
+        monitoringPeriod: process.env.CIRCUIT_BREAKER_MONITORING_PERIOD ? parseInt(process.env.CIRCUIT_BREAKER_MONITORING_PERIOD) : undefined,
       },
       retry: {
         maxRetries: process.env.RETRY_MAX_RETRIES,

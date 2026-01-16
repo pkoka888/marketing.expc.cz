@@ -15,6 +15,6 @@
     "@modelcontextprotocol/sdk": "^1.25.2",
     "octokit": "^4.0.2",
     "zod": "^3.23.8",
-    "@kilo-code/error-handling": "file:../lib/kilo-code"
+    "@kilo-code/error-handling": "file:./lib/kilo-code"
   }
 }

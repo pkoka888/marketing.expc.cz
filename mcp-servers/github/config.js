@@ -34,6 +34,7 @@ const githubConfigSchema = z.object({
     .min(1000)
     .max(300000)
     .default(60000),
+  apiKey: z.string().min(1, 'API_KEY is required'),
 });
 
 const envConfigSchema = z.object({
@@ -55,6 +56,7 @@ const envConfigSchema = z.object({
   CIRCUIT_BREAKER_ENABLED: z.string().optional(),
   CIRCUIT_BREAKER_FAILURE_THRESHOLD: z.string().optional(),
   CIRCUIT_BREAKER_RECOVERY_TIMEOUT: z.string().optional(),
+  API_KEY: z.string().optional(),
 });
 
 /**
@@ -103,6 +105,7 @@ function loadConfig() {
     circuitBreakerRecoveryTimeout: envConfig.CIRCUIT_BREAKER_RECOVERY_TIMEOUT
       ? parseInt(envConfig.CIRCUIT_BREAKER_RECOVERY_TIMEOUT)
       : 60000,
+    apiKey: envConfig.API_KEY || '',
   };
 
   // Validate final configuration

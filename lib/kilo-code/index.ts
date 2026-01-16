@@ -161,15 +161,21 @@ export class KiloCodeErrorHandler {
       // Validate and recover from response issues
       let validatedResult: RecoveryResult<T>;
       if (this.config.enableFallbacks) {
-        validatedResult = await this.validator.validateAndRecover(
-          result,
+        if (result === undefined) {
+          throw new Error('API call returned undefined result.');
+        }
+        validatedResult = (await this.validator.validateAndRecover(
+          result as T,
           logContext,
           this.config.enableFallbacks
-        );
+        )) as RecoveryResult<T>;
         fallbackApplied = validatedResult.fallbackApplied;
         fallbackStrategy = validatedResult.fallbackStrategy;
         validationScore = validatedResult.validationResult.score;
       } else {
+        if (result === undefined) {
+          throw new Error('API call returned undefined result.');
+        }
         // Basic validation without fallbacks
         const validationResult = this.validator.validate(result);
         validatedResult = {
