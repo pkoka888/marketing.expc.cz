@@ -4,6 +4,7 @@
   "description": "MCP server for Redis cache management and monitoring",
   "main": "server.js",
   "scripts": {
+    "prestart": "npm install",
     "start": "node server.js",
     "health": "node health-server.js",
     "dev": "node server.js",
@@ -11,9 +12,10 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.2",
-    "ioredis": "^5.4.1",
     "dotenv": "^16.4.7",
+    "express": "^4.18.2",
+    "ioredis": "^5.4.1",
     "zod": "^3.23.8",
-    "express": "^4.18.2"
+    "@kilo-code/error-handling": "file:../lib/kilo-code"
   }
 }

@@ -5,7 +5,7 @@ export type UserRole = 'CUSTOMER' | 'ADMIN';
 export interface InstructionItem {
   id: string;
   title: string;
-  icon: ReactNode;
+  icon?: ReactNode;
   steps: string[];
 }
 

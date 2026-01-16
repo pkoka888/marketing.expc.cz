@@ -6,14 +6,13 @@ const {
 } = require('@modelcontextprotocol/sdk/server/stdio.js');
 const { Octokit } = require('octokit');
 const z = require('zod');
-const { kiloCodeLogger } = require('../../lib/kilo-code/logger');
-const { loadConfig } = require('./config');
+const { kiloCodeLogger } = require('@kilo-code/error-handling/logger');
 const {
   ExponentialBackoffRetry,
   CircuitBreaker,
   circuitBreakerRegistry,
   retryConfigs,
-} = require('../../lib/kilo-code');
+} = require('@kilo-code/error-handling');
 
 class GitHubMCPServer {
   constructor() {

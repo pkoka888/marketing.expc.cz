@@ -10,16 +10,16 @@ const z = require('zod');
 
 // Import configuration and utilities
 const { getConfig } = require('./config');
-const { kiloCodeLogger } = require('../../lib/kilo-code/index');
+const { kiloCodeLogger } = require('@kilo-code/error-handling/logger');
 const {
   ExponentialBackoffRetry,
   retryConfigs,
-} = require('../../lib/kilo-code/index');
+} = require('@kilo-code/error-handling');
 const {
   CircuitBreaker,
   circuitBreakerRegistry,
-} = require('../../lib/kilo-code/index');
-const { TimeoutHandler } = require('../../lib/kilo-code/index');
+} = require('@kilo-code/error-handling');
+const { TimeoutHandler } = require('@kilo-code/error-handling');
 
 // Custom error classes
 class RedisConnectionError extends Error {

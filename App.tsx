@@ -6,10 +6,25 @@ import {
   Sparkles, User, LogOut, MessageSquare, BarChart, Settings, 
   Layers, Lock, Smartphone, PieChart, Users, Activity, Briefcase,
   Search, Bell, Filter, MoreVertical, Globe, Youtube, Mail, MousePointer2,
-  Cpu, Lightbulb, Target, BookOpen, CheckSquare
+  Cpu, Lightbulb, Target, BookOpen, CheckSquare, BarChart3, Tag
 } from 'lucide-react';
 import { INSTRUCTIONS_DATA, SHARED_EMAIL } from './constants';
-import { UserRole, ClientData } from './types';
+import { UserRole, ClientData, InstructionItem } from './types';
+
+const instructionIcons: Record<string, React.ReactElement> = {
+  'google-ads': <MousePointer2 className="w-5 h-5 text-blue-600" />,
+  'ga4': <BarChart3 className="w-5 h-5 text-orange-500" />,
+  'gtm': <Tag className="w-5 h-5 text-teal-600" />,
+  'looker': <PieChart className="w-5 h-5 text-purple-600" />,
+  'gsc': <Search className="w-5 h-5 text-green-600" />,
+  'meta': <Globe className="w-5 h-5 text-indigo-600" />,
+};
+
+const instructions: InstructionItem[] = INSTRUCTIONS_DATA.map((item) => ({
+  ...item,
+  icon: instructionIcons[item.id],
+}));
+
 
 // --- STYLED COMPONENTS ---
 
@@ -328,7 +343,7 @@ export default function App() {
         </div>
 
         <div className="space-y-6 mb-24">
-          {INSTRUCTIONS_DATA.map((item) => (
+          {instructions.map((item) => (
             <div key={item.id} className={`bg-white rounded-[2.5rem] border transition-all duration-500 overflow-hidden ${openCard === item.id ? 'border-blue-500 shadow-2xl' : 'border-slate-200/60 hover:border-blue-300'}`}>
               <div className="p-1 border-b border-slate-50 flex">
                 <button onClick={() => setSetupState(prev => ({...prev, [item.id]: 'have'}))} className={`flex-1 py-4 text-[10px] font-black uppercase tracking-[0.2em] rounded-t-2xl transition-all ${setupState[item.id] !== 'need' ? 'bg-blue-50 text-blue-600' : 'text-slate-400'}`}>Již mám</button>

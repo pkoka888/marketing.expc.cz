@@ -28,6 +28,7 @@ services:
       - PYTHONPATH=/app
     command: >
       sh -c "
+        apt-get update && apt-get install -y git &&
         python -m venv .venv &&
         . .venv/bin/activate &&
         pip install --upgrade pip &&
@@ -94,7 +95,7 @@ services:
     environment:
       - GITHUB_TOKEN=${GITHUB_TOKEN}
     command: sh -c "npm install && npm start"
-    user: 'node'
+    
     healthcheck:
       test: ['CMD', 'node', '-e', "require('./server.js')"]
       interval: 30s
@@ -112,7 +113,7 @@ services:
     environment:
       - NODE_ENV=production
     command: sh -c "npm install && npm start"
-    user: 'node'
+    
     healthcheck:
       test: ['CMD', 'node', '-e', "require('./server.js')"]
       interval: 30s
@@ -130,7 +131,7 @@ services:
     environment:
       - NODE_ENV=production
     command: sh -c "npm install && npm start"
-    user: 'node'
+    
     healthcheck:
       test: ['CMD', 'node', '-e', "require('./server.js')"]
       interval: 30s
@@ -153,7 +154,7 @@ services:
       - DB_USER=marketinguser
       - DB_PASSWORD=${POSTGRES_PASSWORD:-changeme123}
     command: sh -c "npm install && npm start"
-    user: 'node'
+    
     healthcheck:
       test: ['CMD', 'node', '-e', "require('./server.js')"]
       interval: 30s
@@ -176,7 +177,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     command: sh -c "npm install && npm start"
-    user: 'node'
+    
     healthcheck:
       test: ['CMD', 'node', '-e', "require('./server.js')"]
       interval: 30s
