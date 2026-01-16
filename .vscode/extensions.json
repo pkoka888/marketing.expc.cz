@@ -1,0 +1,17 @@
+{
+    "recommendations": [
+        "ms-vscode.vscode-typescript-next",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "ms-vscode.vscode-json",
+        "ms-playwright.playwright",
+        "kilocode.kilo-code",
+        "cline.cline",
+        "ms-vscode-remote.remote-containers",
+        "editorconfig.editorconfig",
+        "formulahendry.auto-rename-tag",
+        "ms-python.python",
+        "ms-azuretools.vscode-docker",
+        "eamodio.gitlens"
+    ]
+}

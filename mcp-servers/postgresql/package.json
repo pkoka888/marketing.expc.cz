@@ -1,0 +1,25 @@
+{
+  "name": "mcp-postgresql-server",
+  "version": "1.0.0",
+  "description": "Optimized MCP server for PostgreSQL database management and monitoring with comprehensive error handling",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "health": "node -e \"require('./server.js').healthCheck()\"",
+    "docker:build": "docker build -t mcp-postgresql-server .",
+    "docker:run": "docker run --rm -p 3000:3000 mcp-postgresql-server"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.2",
+    "pg": "^8.14.1",
+    "dotenv": "^16.4.7",
+    "zod": "^3.23.8",
+    "winston": "^3.11.0",
+    "joi": "^17.12.0",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

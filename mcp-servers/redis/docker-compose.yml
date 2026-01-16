@@ -1,0 +1,143 @@
+version: '3.8'
+
+services:
+  redis-mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: redis-mcp-server
+    restart: unless-stopped
+
+    # Environment configuration
+    environment:
+      # Redis connection settings
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_DB=${REDIS_DB:-0}
+      - REDIS_USERNAME=${REDIS_USERNAME:-}
+      - REDIS_TLS=${REDIS_TLS:-false}
+      - REDIS_CLUSTER=${REDIS_CLUSTER:-false}
+
+      # Server settings
+      - SERVER_NAME=${SERVER_NAME:-redis-mcp-server}
+      - SERVER_VERSION=${SERVER_VERSION:-1.0.0}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - ENABLE_HEALTH_CHECKS=${ENABLE_HEALTH_CHECKS:-true}
+      - HEALTH_CHECK_PORT=${HEALTH_CHECK_PORT:-3000}
+
+      # Circuit breaker settings
+      - CIRCUIT_BREAKER_FAILURE_THRESHOLD=${CIRCUIT_BREAKER_FAILURE_THRESHOLD:-5}
+      - CIRCUIT_BREAKER_RECOVERY_TIMEOUT=${CIRCUIT_BREAKER_RECOVERY_TIMEOUT:-60000}
+      - CIRCUIT_BREAKER_MONITORING_PERIOD=${CIRCUIT_BREAKER_MONITORING_PERIOD:-10000}
+
+      # Retry settings
+      - RETRY_MAX_RETRIES=${RETRY_MAX_RETRIES:-3}
+      - RETRY_BASE_DELAY=${RETRY_BASE_DELAY:-1000}
+      - RETRY_MAX_DELAY=${RETRY_MAX_DELAY:-10000}
+      - RETRY_BACKOFF_MULTIPLIER=${RETRY_BACKOFF_MULTIPLIER:-2}
+
+      # Timeout settings
+      - CONNECTION_TIMEOUT=${CONNECTION_TIMEOUT:-5000}
+      - OPERATION_TIMEOUT=${OPERATION_TIMEOUT:-10000}
+      - HEALTH_CHECK_TIMEOUT=${HEALTH_CHECK_TIMEOUT:-1000}
+
+      # Node.js settings
+      - NODE_ENV=production
+      - NODE_OPTIONS=--max-old-space-size=512
+
+    # Health check configuration
+    healthcheck:
+      test: ['CMD', 'node', 'health-server.js', '--health-check']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+      disable: false
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/logs
+
+    # Logging configuration
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+    # Networks
+    networks:
+      - redis-network
+
+    # Dependencies
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # Redis database service
+  redis:
+    image: redis:7-alpine
+    container_name: redis-server
+    restart: unless-stopped
+
+    # Redis configuration
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    volumes:
+      - redis_data:/data
+      - ./redis.conf:/etc/redis/redis.conf:ro
+
+    # Health check
+    healthcheck:
+      test: ['CMD', 'redis-cli', '--raw', 'incr', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+
+    # Security
+    security_opt:
+      - no-new-privileges:true
+
+    # Networks
+    networks:
+      - redis-network
+
+    # Environment
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+
+# Networks
+networks:
+  redis-network:
+    driver: bridge
+    internal: false
+
+# Volumes
+volumes:
+  redis_data:
+    driver: local

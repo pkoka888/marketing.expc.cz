@@ -1,0 +1,19 @@
+{
+  "name": "mcp-redis-server",
+  "version": "1.0.0",
+  "description": "MCP server for Redis cache management and monitoring",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "health": "node health-server.js",
+    "dev": "node server.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.2",
+    "ioredis": "^5.4.1",
+    "dotenv": "^16.4.7",
+    "zod": "^3.23.8",
+    "express": "^4.18.2"
+  }
+}

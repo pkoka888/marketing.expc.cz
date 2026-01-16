@@ -1,0 +1,242 @@
+services:
+  app:
+    image: node:20
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - '3000:3000'
+    command: sh -c "npm install && npm run dev"
+    secrets:
+      - gemini_api_key
+    environment:
+      - GEMINI_API_KEY_FILE=/run/secrets/gemini_api_key
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - app-network
+
+  python-service:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+      - python-venv:/app/.venv
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - PYTHONPATH=/app
+    command: >
+      sh -c "
+        python -m venv .venv &&
+        . .venv/bin/activate &&
+        pip install --upgrade pip &&
+        pip install -r requirements.txt 2>/dev/null || echo 'No requirements.txt found, creating empty one' &&
+        pip install git+https://github.com/google-gemini/gemini-cli.git &&
+        echo 'Python service with Gemini CLI ready' &&
+        sleep infinity
+      "
+    depends_on:
+      - app
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=marketingportal
+      - POSTGRES_USER=marketinguser
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme123}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U marketinguser -d marketingportal']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - app-network
+
+  envoy:
+    image: envoyproxy/envoy:v1.28-latest
+    ports:
+      - '8080:8080'
+      - '9901:9901'
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
+    depends_on:
+      - app
+    networks:
+      - app-network
+
+  mcp-github:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./mcp-servers/github:/app
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    command: sh -c "npm install && npm start"
+    user: 'node'
+    healthcheck:
+      test: ['CMD', 'node', '-e', "require('./server.js')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
+
+  mcp-monitoring:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./mcp-servers/monitoring:/app
+    environment:
+      - NODE_ENV=production
+    command: sh -c "npm install && npm start"
+    user: 'node'
+    healthcheck:
+      test: ['CMD', 'node', '-e', "require('./server.js')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
+
+  mcp-playwright:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./mcp-servers/playwright:/app
+    environment:
+      - NODE_ENV=production
+    command: sh -c "npm install && npm start"
+    user: 'node'
+    healthcheck:
+      test: ['CMD', 'node', '-e', "require('./server.js')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
+
+  mcp-postgresql:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./mcp-servers/postgresql:/app
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=marketingportal
+      - DB_USER=marketinguser
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-changeme123}
+    command: sh -c "npm install && npm start"
+    user: 'node'
+    healthcheck:
+      test: ['CMD', 'node', '-e', "require('./server.js')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  mcp-redis:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./mcp-servers/redis:/app
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    command: sh -c "npm install && npm start"
+    user: 'node'
+    healthcheck:
+      test: ['CMD', 'node', '-e', "require('./server.js')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - app-network
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - '3001:3000'
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    networks:
+      - app-network
+
+volumes:
+  python-venv:
+  postgres-data:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+
+secrets:
+  gemini_api_key:
+    file: ./secrets/gemini_api_key.txt
+  github_token:
+    file: ./secrets/github_token.txt
+
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

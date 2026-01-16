@@ -1,0 +1,30 @@
+{
+  "name": "@kilo-code/error-handling",
+  "version": "1.0.0",
+  "description": "Comprehensive error handling, retry logic, and recovery mechanisms for applications",
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write ."
+  },
+  "keywords": [
+    "error-handling",
+    "retry",
+    "circuit-breaker",
+    "logging",
+    "resilience"
+  ],
+  "author": "Kilo Code",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

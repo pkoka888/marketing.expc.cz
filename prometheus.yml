@@ -1,0 +1,36 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'app'
+    static_configs:
+      - targets: ['app:3000']
+
+  - job_name: 'mcp-monitoring'
+    static_configs:
+      - targets: ['mcp-monitoring:8080']
+
+  - job_name: 'mcp-playwright'
+    static_configs:
+      - targets: ['mcp-playwright:8081']
+
+  - job_name: 'mcp-postgresql'
+    static_configs:
+      - targets: ['mcp-postgresql:3001']
+
+  - job_name: 'mcp-redis'
+    static_configs:
+      - targets: ['mcp-redis:3000']
+
+  - job_name: 'envoy'
+    static_configs:
+      - targets: ['envoy:9901']

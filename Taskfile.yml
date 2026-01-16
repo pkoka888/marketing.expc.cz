@@ -1,0 +1,434 @@
+version: "3"
+
+# Cline Agent Orchestration Taskfile
+# Integrates with Cline CLI for automated agent workflows
+
+tasks:
+  # Agent Orchestration Tasks
+  agent.setup:
+    desc: "Setup agent orchestration environment"
+    cmds:
+      - mkdir -p .cline/logs .cline/backups
+      - echo "Agent orchestration environment ready"
+    silent: true
+
+  agent.prompt-library:
+    desc: "Update Cline prompt library from official sources"
+    cmds:
+      - |
+        echo "Updating Cline prompt library..."
+        # Download latest prompts from Cline documentation
+        curl -s https://cline.bot/prompts > .cline/prompts/latest.html || echo "Failed to download prompts"
+        echo "Prompt library updated"
+
+  agent.interaction-log:
+    desc: "Log agent interaction for validation"
+    vars:
+      INTERACTION_ID: "{{.INTERACTION_ID}}"
+      PROMPT: "{{.PROMPT}}"
+      RESULT: "{{.RESULT}}"
+      FILES_CHANGED: "{{.FILES_CHANGED}}"
+    cmds:
+      - |
+        if [ -z "$INTERACTION_ID" ]; then
+          echo "Error: INTERACTION_ID required"
+          exit 1
+        fi
+        
+        TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        LOG_FILE=".cline/logs/interactions-$(date +%Y-%m-%d).jsonl"
+        
+        # Create log entry
+        cat <<EOF >> "$LOG_FILE"
+        {
+          "interactionId": "$INTERACTION_ID",
+          "timestamp": "$TIMESTAMP",
+          "userPrompt": "$PROMPT",
+          "result": "$RESULT",
+          "filesChanged": $FILES_CHANGED,
+          "validationStatus": "pending"
+        }
+        EOF
+        
+        echo "Interaction logged: $INTERACTION_ID"
+
+  agent.validate:
+    desc: "Validate agent interaction against requirements"
+    vars:
+      INTERACTION_ID: "{{.INTERACTION_ID}}"
+    cmds:
+      - |
+        if [ -z "$INTERACTION_ID" ]; then
+          echo "Error: INTERACTION_ID required"
+          exit 1
+        fi
+        
+        # Run validation script
+        node .cline/scripts/validate-interaction.js "$INTERACTION_ID"
+        
+        echo "Validation completed for: $INTERACTION_ID"
+
+  agent.cline-suggest:
+    desc: "Get Cline prompt suggestions for current phase"
+    vars:
+      CURRENT_PHASE: "{{.CURRENT_PHASE}}"
+      CONTEXT: "{{.CONTEXT}}"
+    cmds:
+      - |
+        echo "Getting Cline prompt suggestions for phase: $CURRENT_PHASE"
+        
+        # Use Cline CLI to get suggestions
+        cline suggest --phase "$CURRENT_PHASE" --context "$CONTEXT" > .cline/suggestions.json
+        
+        echo "Prompt suggestions saved to .cline/suggestions.json"
+
+  # Phase Management Tasks
+  phase.start:
+    desc: "Start new development phase"
+    vars:
+      PHASE: "{{.PHASE}}"
+      CONTEXT: "{{.CONTEXT}}"
+    cmds:
+      - |
+        echo "Starting phase: $PHASE"
+        
+        # Update phase context
+        echo "{
+          \"phase\": \"$PHASE\",
+          \"startTime\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+          \"context\": \"$CONTEXT\"
+        }" > .cline/context/current-phase.json
+        
+        # Trigger phase-specific setup
+        task phase.setup PHASE="$PHASE"
+
+  phase.setup:
+    desc: "Setup tasks for specific phase"
+    vars:
+      PHASE: "{{.PHASE}}"
+    cmds:
+      - |
+        case "$PHASE" in
+          "setup")
+            task agent.setup
+            task agent.prompt-library
+            ;;
+          "architecture")
+            task agent.cline-suggest CURRENT_PHASE="architecture" CONTEXT="project-requirements"
+            ;;
+          "implementation")
+            task agent.cline-suggest CURRENT_PHASE="implementation" CONTEXT="architecture-design"
+            ;;
+          "testing")
+            task agent.cline-suggest CURRENT_PHASE="testing" CONTEXT="implementation-complete"
+            ;;
+          "deployment")
+            task agent.cline-suggest CURRENT_PHASE="deployment" CONTEXT="testing-complete"
+            ;;
+          *)
+            echo "Unknown phase: $PHASE"
+            exit 1
+            ;;
+        esac
+
+  phase.complete:
+    desc: "Complete current development phase"
+    vars:
+      PHASE: "{{.PHASE}}"
+      RESULTS: "{{.RESULTS}}"
+    cmds:
+      - |
+        echo "Completing phase: $PHASE"
+        
+        # Archive current phase
+        PHASE_ARCHIVE=".cline/archive/phase-$PHASE-$(date +%Y%m%d-%H%M%S).json"
+        cp .cline/context/current-phase.json "$PHASE_ARCHIVE"
+        
+        # Update completion status
+        jq ".completionTime = \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" | .results = $RESULTS" "$PHASE_ARCHIVE" > .cline/context/completed-phases.json
+        
+        # Trigger CI/CD if configured
+        if [ -f ".cline/workflows/ci-cd.json" ]; then
+          task ci.trigger PHASE="$PHASE" RESULTS="$RESULTS"
+        fi
+
+  # CI/CD Integration Tasks
+  ci.trigger:
+    desc: "Trigger CI/CD pipeline for phase completion"
+    vars:
+      PHASE: "{{.PHASE}}"
+      RESULTS: "{{.RESULTS}}"
+    cmds:
+      - |
+        echo "Triggering CI/CD for phase: $PHASE"
+        
+        # Create CI/CD payload
+        cat <<EOF > .cline/ci-payload.json
+        {
+          "phase": "$PHASE",
+          "results": $RESULTS,
+          "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "triggeredBy": "agent-orchestration"
+        }
+        EOF
+        
+        # Trigger build (example for GitHub Actions)
+        if [ -n "$GITHUB_TOKEN" ]; then
+          curl -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/$(git config --get remote.origin.url | sed 's/.*://' | sed 's/.git$//')/actions/workflows/agent-phase-complete.yml/dispatches \
+            -d "{\"ref\":\"main\",\"inputs\":{\"phase\":\"$PHASE\",\"results\":\"$RESULTS\"}}"
+        fi
+        
+        echo "CI/CD triggered for phase: $PHASE"
+
+  ci.status:
+    desc: "Check CI/CD pipeline status"
+    vars:
+      PHASE: "{{.PHASE}}"
+    cmds:
+      - |
+        echo "Checking CI/CD status for phase: $PHASE"
+        
+        # Check GitHub Actions status
+        if [ -n "$GITHUB_TOKEN" ]; then
+          curl -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$(git config --get remote.origin.url | sed 's/.*://' | sed 's/.git$//')/actions/workflows/agent-phase-complete.yml/runs?status=in_progress&event=workflow_dispatch"
+        fi
+
+  # Validation and Quality Tasks
+  validate.prompt-vs-result:
+    desc: "Compare prompt requirements vs actual results"
+    vars:
+      PROMPT: "{{.PROMPT}}"
+      RESULT: "{{.RESULT}}"
+    cmds:
+      - |
+        echo "Validating prompt vs result..."
+        
+        # Run validation script
+        node .cline/scripts/validate-prompt-result.js \
+          --prompt "$PROMPT" \
+          --result "$RESULT" \
+          --output .cline/validation-results.json
+        
+        echo "Validation completed"
+
+  validate.code-quality:
+    desc: "Run code quality checks on generated code"
+    cmds:
+      - npm run lint
+      - npm run typecheck
+      - npm run test
+
+  validate.security:
+    desc: "Run security scans on generated code"
+    cmds:
+      - npm audit
+      - npm run security:scan
+
+  # Backup and Recovery Tasks
+  backup.agent-state:
+    desc: "Backup current agent orchestration state"
+    cmds:
+      - |
+        BACKUP_DIR=".cline/backups/$(date +%Y%m%d-%H%M%S)"
+        mkdir -p "$BACKUP_DIR"
+        
+        # Backup important files
+        cp -r .cline/context "$BACKUP_DIR/"
+        cp -r .cline/prompts "$BACKUP_DIR/"
+        cp -r .cline/workflows "$BACKUP_DIR/"
+        cp .cline/logs/*.jsonl "$BACKUP_DIR/" 2>/dev/null || true
+        
+        echo "Agent state backed up to: $BACKUP_DIR"
+
+  restore.agent-state:
+    desc: "Restore agent orchestration state from backup"
+    vars:
+      BACKUP_DIR: "{{.BACKUP_DIR}}"
+    cmds:
+      - |
+        if [ ! -d "$BACKUP_DIR" ]; then
+          echo "Error: Backup directory not found: $BACKUP_DIR"
+          exit 1
+        fi
+        
+        # Restore files
+        cp -r "$BACKUP_DIR"/context/* .cline/context/
+        cp -r "$BACKUP_DIR"/prompts/* .cline/prompts/
+        cp -r "$BACKUP_DIR"/workflows/* .cline/workflows/
+        cp "$BACKUP_DIR"/*.jsonl .cline/logs/ 2>/dev/null || true
+        
+        echo "Agent state restored from: $BACKUP_DIR"
+
+  # Monitoring and Analytics Tasks
+  analytics.interaction-metrics:
+    desc: "Generate interaction metrics and analytics"
+    cmds:
+      - |
+        echo "Generating interaction metrics..."
+        
+        # Generate metrics from logs
+        node .cline/scripts/generate-metrics.js \
+          --input .cline/logs/ \
+          --output .cline/analytics/metrics-$(date +%Y%m%d).json
+        
+        echo "Metrics generated"
+
+  # Utility Tasks
+  cleanup.logs:
+    desc: "Clean up old log files"
+    vars:
+      DAYS_TO_KEEP: "{{.DAYS_TO_KEEP|30}}"
+    cmds:
+      - |
+        find .cline/logs/ -name "*.jsonl" -mtime +$DAYS_TO_KEEP -delete
+        echo "Cleaned up logs older than $DAYS_TO_KEEP days"
+
+  cleanup.backups:
+    desc: "Clean up old backup files"
+    vars:
+      BACKUPS_TO_KEEP: "{{.BACKUPS_TO_KEEP|10}}"
+    cmds:
+      - |
+        cd .cline/backups/
+        ls -t | tail -n +$((BACKUPS_TO_KEEP + 1)) | xargs -r rm -rf
+        echo "Cleaned up old backups, keeping $BACKUPS_TO_KEEP most recent"
+
+  # Slash Command Integration
+  prompt-advisor:
+    desc: "Execute /prompt-advisor slash command"
+    vars:
+      COMMAND: "{{.COMMAND|next-steps}}"
+      OPTIONS: "{{.OPTIONS}}"
+    cmds:
+      - |
+        echo "=€ Executing /prompt-advisor ${COMMAND}"
+        node .cline/scripts/prompt-advisor.js ${COMMAND} ${OPTIONS}
+        
+        # Auto-execute suggested tasks if --auto-execute flag is provided
+        if [[ "${OPTIONS}" == *"--auto-execute"* ]]; then
+          echo "= Auto-executing suggested tasks..."
+          # Parse and execute high-priority tasks
+          node .cline/scripts/prompt-advisor.js ${COMMAND} ${OPTIONS} --format=json | jq -r '.suggestions[] | select(.priority=="high") | .prompt' | head -3
+        fi
+
+  # Enhanced prompt suggestions with context awareness
+  agent.cline-suggest:
+    desc: "Get Cline prompt suggestions for current phase with enhanced context"
+    vars:
+      CURRENT_PHASE: "{{.CURRENT_PHASE}}"
+      CONTEXT: "{{.CONTEXT}}"
+      AGENT_MODE: "{{.AGENT_MODE}}"
+    cmds:
+      - |
+        echo "Getting enhanced Cline prompt suggestions for phase: $CURRENT_PHASE"
+        
+        # Use prompt-advisor for intelligent suggestions
+        if [ -f ".cline/scripts/prompt-advisor.js" ]; then
+          node .cline/scripts/prompt-advisor.js next-steps --context="$CURRENT_PHASE" --agent="$AGENT_MODE" --format=json > .cline/suggestions.json
+          echo "Enhanced prompt suggestions saved to .cline/suggestions.json"
+        else
+          # Fallback to original method
+          cline suggest --phase "$CURRENT_PHASE" --context "$CONTEXT" > .cline/suggestions.json
+          echo "Prompt suggestions saved to .cline/suggestions.json"
+        fi
+
+  # Conductor framework integration
+  conductor.sync:
+    desc: "Sync conductor framework with current project state"
+    cmds:
+      - |
+        echo "= Syncing conductor framework with current project state..."
+        
+        # Update current phase in conductor framework
+        if [ -f ".cline/context/current-phase.json" ]; then
+          CURRENT_PHASE=$(jq -r '.phase' .cline/context/current-phase.json)
+          echo "Current phase: $CURRENT_PHASE"
+          
+          # Update conductor state
+          echo "{
+            \"phase\": \"$CURRENT_PHASE\",
+            \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+            \"status\": \"active\",
+            \"progress\": \"$(jq -r '.progress // 0' .cline/context/current-phase.json)\"
+          }" > .cline/context/conductor-state.json
+          
+          echo "Conductor framework synced"
+        else
+          echo "No current phase found, creating initial conductor state"
+          echo "{
+            \"phase\": \"setup\",
+            \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+            \"status\": \"active\",
+            \"progress\": 0
+          }" > .cline/context/conductor-state.json
+        fi
+
+  # Next steps automation
+  next-steps:
+    desc: "Get and optionally execute next steps automatically"
+    vars:
+      AUTO_EXECUTE: "{{.AUTO_EXECUTE|false}}"
+      PRIORITY: "{{.PRIORITY|high}}"
+    cmds:
+      - |
+        echo "<¯ Getting next steps with priority: $PRIORITY"
+        
+        # Get next steps from prompt-advisor
+        node .cline/scripts/prompt-advisor.js next-steps --priority="$PRIORITY" --format=json > .cline/next-steps.json
+        
+        # Display suggestions
+        echo "Next steps suggestions:"
+        jq -r '.suggestions[] | "- \(.priority): \(.prompt | truncate(80))"' .cline/next-steps.json
+        
+        # Auto-execute if requested
+        if [ "$AUTO_EXECUTE" = "true" ]; then
+          echo "= Auto-executing high-priority tasks..."
+          
+          # Extract and execute high-priority tasks
+          jq -r '.suggestions[] | select(.priority=="high") | "\(.agentMode): \(.prompt)"' .cline/next-steps.json | while read -r task; do
+            echo "Executing: $task"
+            # Here you would integrate with your agent execution system
+          done
+        fi
+
+  help:
+    desc: "Show available agent orchestration tasks"
+    cmds:
+      - echo "Available Agent Orchestration Tasks:"
+      - echo "  task agent.setup                    - Setup agent orchestration environment"
+      - echo "  task agent.prompt-library           - Update Cline prompt library"
+      - echo "  task agent.interaction-log          - Log agent interaction for validation"
+      - echo "  task agent.validate                 - Validate agent interaction"
+      - echo "  task agent.cline-suggest            - Get Cline prompt suggestions"
+      - echo "  task agent.extract-tasks            - Extract pending user tasks from output"
+      - echo "  task phase.start                    - Start new development phase"
+      - echo "  task phase.complete                 - Complete current development phase"
+      - echo "  task ci.trigger                     - Trigger CI/CD pipeline"
+      - echo "  task validate.prompt-vs-result      - Compare prompt vs result"
+      - echo "  task validate.code-quality          - Run code quality checks"
+      - echo "  task backup.agent-state             - Backup agent orchestration state"
+      - echo "  task analytics.interaction-metrics  - Generate interaction metrics"
+      - echo "  task cleanup.logs                   - Clean up old log files"
+      - echo ""
+      - echo "Slash Command Integration:"
+      - echo "  task prompt-advisor                 - Execute /prompt-advisor commands"
+      - echo "  task conductor.sync                 - Sync conductor framework state"
+      - echo "  task next-steps                     - Get and execute next steps"
+      - echo ""
+      - echo "Background Execution Tasks:"
+      - echo "  task exec.background                - Execute command in background"
+      - echo "  task exec.parallel                  - Execute multiple commands in parallel"
+      - echo ""
+      - echo "Usage examples:"
+      - echo "  task agent.interaction-log INTERACTION_ID=abc123 PROMPT='...' RESULT='...' FILES_CHANGED='[]'"
+      - echo "  task agent.extract-tasks --output agent-output.txt"
+      - echo "  task phase.start PHASE=architecture CONTEXT='project-requirements'"
+      - echo "  task phase.complete PHASE=setup RESULTS='{\"status\":\"completed\"}'"
+      - echo "  task exec.background 'npm install' --task-id setup-1 --phase setup"
+      - echo "  task exec.parallel 'npm install,npm run build' --phase implementation"
+      - echo "  task prompt-advisor COMMAND=architecture-phase OPTIONS='--agent=architect-orchestrator'"
+      - echo "  task next-steps AUTO_EXECUTE=true PRIORITY=high"
