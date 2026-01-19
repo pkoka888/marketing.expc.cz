@@ -17,6 +17,13 @@ services:
     networks:
       - mcp-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          memory: 256M
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres -d marketingportal']
       interval: 10s
@@ -25,7 +32,12 @@ services:
       start_period: 30s
     command: >
       postgres
-      -c max_connections=100
+      -c max_connections=50
+      -c shared_buffers=128MB
+      -c work_mem=4MB
+      -c effective_cache_size=384MB
+      -c maintenance_work_mem=32MB
+      -c random_page_cost=1.1
       -c shared_preload_libraries=pg_stat_statements
       -c pg_stat_statements.max=10000
       -c pg_stat_statements.track=all

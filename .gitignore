@@ -62,5 +62,14 @@ Thumbs.db
 *.swp
 
 # Tool directories
-.cline/
+# Tool managed directories - Runtime Only Ignored
+.cline/context/
+.cline/logs/
+.cline/backups/
+.cline/archive/
+# Note: .cline/scripts, .cline/prompts, .cline/workflows, etc. are now VISIBLE by default.
+
+# Kilo Code
+.kilocode/context/
+# .kilocode/modes.yaml and rules/ are VISIBLE by default.
 audit_results.md

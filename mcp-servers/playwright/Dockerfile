@@ -20,15 +20,15 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 # Create app directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package files from the correct path explicitly
+COPY mcp-servers/playwright/package*.json ./
 
 # Install dependencies
 RUN npm ci --only=production && npm cache clean --force
 
-# Copy application code
-COPY server.js ./
-COPY config.js ./
+# Copy application code from the correct path explicitly
+COPY mcp-servers/playwright/server.js ./
+COPY mcp-servers/playwright/config.js ./
 
 # Create logs directory
 RUN mkdir -p logs

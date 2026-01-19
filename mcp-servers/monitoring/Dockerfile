@@ -7,15 +7,15 @@ WORKDIR /app
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
 
-# Copy package files
-COPY package*.json ./
+# Copy package files from the correct path explicitly
+COPY mcp-servers/monitoring/package*.json ./
 
 # Install dependencies
 RUN npm ci --only=production && npm cache clean --force
 
-# Copy source code
-COPY server.js ./
-COPY config.js ./
+# Copy source code from the correct path explicitly
+COPY mcp-servers/monitoring/server.js ./
+COPY mcp-servers/monitoring/config.js ./
 
 # Create logs directory if logging to file is enabled
 RUN mkdir -p logs

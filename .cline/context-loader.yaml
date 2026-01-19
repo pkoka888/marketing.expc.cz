@@ -1,0 +1,33 @@
+# Context Loader Configuration
+# Defines "Scenarios" for dynamic context assembly
+
+default:
+  description: 'Standard operating context for most tasks'
+  include:
+    - agent.md
+    - .cline/context/current-phase.json
+    - .cline/context/SUMMARY.md
+
+debugging:
+  description: 'Context optimized for troubleshooting and fixing bugs'
+  include:
+    - agent.md
+    - .cline/context/current-phase.json
+    - .cline/logs/error.log
+    - .cline/logs/recent_errors.json
+
+planning:
+  description: 'Context for roadmap planning and architecture design'
+  include:
+    - agent.md
+    - plans/plan.md
+    - docs/architecture/
+  instructions: 'Focus on high-level design and roadmap consistency.'
+
+cleanup:
+  description: 'Context for the Janitor agent'
+  include:
+    - agent.md
+    - .kilocode/rules/maintenance.md
+    - .cline/archive/
+  instructions: 'Identify obsolete files and move them to archive. Update agent.md if needed.'

@@ -13,14 +13,18 @@ RUN apk add --no-cache \
 # Create app directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package files from the correct path explicitly
+COPY mcp-servers/postgresql/package*.json ./
 
 # Install dependencies (including dev dependencies for build)
 RUN npm ci --only=production=false
 
-# Copy source code
-COPY . .
+# Copy source code from the correct path explicitly
+COPY mcp-servers/postgresql/server.js ./
+COPY mcp-servers/postgresql/config.js ./
+COPY mcp-servers/postgresql/logger.js ./
+COPY mcp-servers/postgresql/database.js ./
+COPY mcp-servers/postgresql/health-server.js ./
 
 # Build application (if needed)
 RUN npm run build 2>/dev/null || echo "No build script found"
@@ -42,7 +46,7 @@ RUN addgroup -g 1001 -S nodejs && \
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY mcp-servers/postgresql/package*.json ./
 
 # Install only production dependencies
 RUN npm ci --only=production && \

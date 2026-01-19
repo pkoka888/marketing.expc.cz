@@ -8,10 +8,10 @@ RUN apk add --no-cache dumb-init
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY mcp-servers/github/package*.json ./
 
 # Copy local kilo-code library
-COPY ../../lib/kilo-code ./lib/kilo-code
+COPY lib/kilo-code ./lib/kilo-code
 
 # Install dependencies
 RUN npm ci --only=production --ignore-scripts && npm cache clean --force
@@ -22,17 +22,17 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY mcp-servers/github/package*.json ./
 
 # Copy local kilo-code library
-COPY ../../lib/kilo-code ./lib/kilo-code
+COPY lib/kilo-code ./lib/kilo-code
 
 # Install all dependencies (including dev dependencies for building)
 RUN npm ci --ignore-scripts
 
 # Copy source code
-COPY server.js ./
-COPY config.js ./
+COPY mcp-servers/github/server.js ./
+COPY mcp-servers/github/config.js ./
 
 # Build stage (if needed in future)
 # RUN npm run build
@@ -51,7 +51,7 @@ RUN addgroup -g 1001 -S nodejs && \
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY mcp-servers/github/package*.json ./
 
 # Copy installed dependencies from deps stage
 COPY --from=deps --chown=nodejs:nodejs /app/node_modules ./node_modules
@@ -60,8 +60,8 @@ COPY --from=deps --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/lib ./lib
 
 # Copy built application
-COPY --chown=nodejs:nodejs server.js ./
-COPY --chown=nodejs:nodejs config.js ./
+COPY --chown=nodejs:nodejs mcp-servers/github/server.js ./
+COPY --chown=nodejs:nodejs mcp-servers/github/config.js ./
 
 # Switch to non-root user
 USER nodejs
@@ -69,9 +69,9 @@ USER nodejs
 # Expose port (not used for stdio server, but good practice)
 EXPOSE 3000
 
-# Health check (for when running as HTTP server in future)
-# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-#   CMD node -e "console.log('Health check passed')" || exit 1
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD ps aux | grep "node server.js" | grep -v grep || exit 1
 
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]

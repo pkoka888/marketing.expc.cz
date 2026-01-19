@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-01-15T23:18:24.626Z",
+  "pendingTasks": [
+    {
+      "type": "API_KEY",
+      "description": "API key required",
+      "pattern": "/api\\s*key/i"
+    },
+    {
+      "type": "MANUAL_SETUP",
+      "description": "Manual setup required",
+      "pattern": "/manual\\s*(setup|configuration)/i"
+    },
+    {
+      "type": "PROVIDE_INFO",
+      "description": "Information needs to be provided",
+      "pattern": "/please\\s*provide/i"
+    }
+  ],
+  "status": "PENDING_USER_ACTION"
+}

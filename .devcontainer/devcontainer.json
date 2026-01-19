@@ -1,5 +1,5 @@
 {
-  "name": "Marketing Dev",
+  "name": "Marketing Portal Professional Dev",
   "dockerComposeFile": "../docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/app",
@@ -10,15 +10,25 @@
       "installYarnUsingApt": true
     },
     "ghcr.io/devcontainers/features/python:1": {
-      "version": "3.11"
+      "version": "3.11",
+      "installTools": true,
+      "optimize": true
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "version": "latest",
+      "enableNonRootDocker": "true",
+      "moby": "true"
     },
     "ghcr.io/devcontainers/features/common-utils:2": {
-      "configureZshAsDefaultShell": false
-    }
+      "configureZshAsDefaultShell": true,
+      "username": "node"
+    },
+    "ghcr.io/devcontainers/features/git:1": {}
   },
   "containerEnv": {
     "LANG": "C.UTF-8",
-    "LC_ALL": "C.UTF-8"
+    "LC_ALL": "C.UTF-8",
+    "POETRY_VIRTUALENVS_IN_PROJECT": "true"
   },
   "customizations": {
     "vscode": {
@@ -28,7 +38,19 @@
         "dbaeumer.vscode-eslint",
         "ms-vscode.vscode-json",
         "ms-playwright.playwright",
-        "kilocode.kilo-code"
+        "kilocode.kilo-code",
+        "ms-azuretools.vscode-docker",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "eamodio.gitlens",
+        "donjayamanne.githistory",
+        "vivaxy.vscode-conventional-commits",
+        "mhutchie.git-graph",
+        "humao.rest-client",
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint",
+        "tamasfe.even-better-toml",
+        "redhat.vscode-yaml"
       ],
       "settings": {
         "editor.formatOnSave": true,
@@ -36,9 +58,13 @@
         "eslint.enable": true,
         "typescript.preferences.importModuleSpecifier": "relative",
         "playwright.reuseBrowser": true,
-        "kilocode.model": "x-ai/grok-code-fast-1"
+        "kilocode.model": "x-ai/grok-code-fast-1",
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "python.defaultInterpreterPath": "/app/.venv/bin/python",
+        "python.formatting.provider": "black"
       }
     }
   },
-  "postCreateCommand": "npm install && python3 -m venv .venv && source .venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt && npm install -g @kilocode/cli"
+  "remoteUser": "node",
+  "postStartCommand": "bash .devcontainer/setup.sh"
 }

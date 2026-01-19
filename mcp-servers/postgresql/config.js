@@ -14,18 +14,18 @@ const configSchema = Joi.object({
     user: Joi.string().default('postgres'),
     password: Joi.string().allow('').optional(),
     ssl: Joi.boolean().default(false),
-    maxConnections: Joi.number().integer().min(1).max(100).default(20),
+    maxConnections: Joi.number().integer().min(1).max(50).default(15),
     idleTimeoutMillis: Joi.number()
       .integer()
       .min(1000)
       .max(300000)
-      .default(30000),
+      .default(10000),
     connectionTimeoutMillis: Joi.number()
       .integer()
       .min(1000)
       .max(60000)
-      .default(2000),
-    queryTimeout: Joi.number().integer().min(1000).max(300000).default(30000),
+      .default(5000),
+    queryTimeout: Joi.number().integer().min(1000).max(300000).default(15000),
   }).default(),
 
   // Server Configuration
@@ -64,7 +64,7 @@ const configSchema = Joi.object({
 
   // Retry Configuration
   retry: Joi.object({
-    maxAttempts: Joi.number().integer().min(1).max(10).default(3),
+    maxAttempts: Joi.number().integer().min(1).max(30).default(3),
     baseDelay: Joi.number().integer().min(100).max(10000).default(1000),
     maxDelay: Joi.number().integer().min(1000).max(60000).default(10000),
     backoffMultiplier: Joi.number().min(1).max(3).default(2),
@@ -113,12 +113,12 @@ function loadConfig() {
       user: process.env.DB_USER || process.env.PGUSER || 'postgres',
       password: process.env.DB_PASSWORD || process.env.PGPASSWORD,
       ssl: process.env.DB_SSL === 'true' || process.env.PGSSLMODE === 'require',
-      maxConnections: parseInt(process.env.DB_MAX_CONNECTIONS || '20'),
-      idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT || '30000'),
+      maxConnections: parseInt(process.env.DB_MAX_CONNECTIONS || '15'),
+      idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT || '10000'),
       connectionTimeoutMillis: parseInt(
-        process.env.DB_CONNECTION_TIMEOUT || '2000'
+        process.env.DB_CONNECTION_TIMEOUT || '5000'
       ),
-      queryTimeout: parseInt(process.env.DB_QUERY_TIMEOUT || '30000'),
+      queryTimeout: parseInt(process.env.DB_QUERY_TIMEOUT || '15000'),
     },
     server: {
       name: process.env.MCP_SERVER_NAME || 'postgresql-mcp-server',

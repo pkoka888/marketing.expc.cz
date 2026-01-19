@@ -1,0 +1,14 @@
+node_modules
+.git
+.env
+dist
+build
+coverage
+test-results
+mcp-servers/*/node_modules
+lib/kilo-code/node_modules
+**/*.log
+.devcontainer
+.vscode
+.kilocode
+.venv

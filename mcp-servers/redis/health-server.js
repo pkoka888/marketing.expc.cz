@@ -3,7 +3,7 @@
 const express = require('express');
 const Redis = require('ioredis');
 const { getConfig } = require('./config');
-const { kiloCodeLogger } = require('../../lib/kilo-code/logger');
+const { kiloCodeLogger } = require('@kilo-code/error-handling/logger');
 
 class HealthCheckServer {
   constructor() {

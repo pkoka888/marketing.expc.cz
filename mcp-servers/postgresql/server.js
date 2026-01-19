@@ -849,8 +849,16 @@ class PostgreSQLMCPServer {
       }
 
       // Auto-connect to database
-      logger.info('Auto-connecting to database...');
-      await databaseManager.connect();
+      try {
+        logger.info('Auto-connecting to database...');
+        await databaseManager.connect();
+      } catch (error) {
+        logger.error(
+          'Initial auto-connection failed. Server will continue running but database is disconnected.',
+          { error: error.message }
+        );
+        // Continue startup - server will report unhealthy until connected
+      }
 
       // Connect MCP server
       const transport = new StdioServerTransport();

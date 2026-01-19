@@ -13,7 +13,10 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY mcp-servers/redis/package*.json ./
+
+# Copy local kilo-code library (dependency)
+COPY lib/kilo-code ./lib/kilo-code
 
 # Install all dependencies (including dev dependencies for building)
 RUN npm ci --only=production --ignore-scripts && \
@@ -39,7 +42,7 @@ RUN apk update && \
 FROM node:20-alpine AS production
 
 # Import security updates from security stage
-COPY --from=security /usr/local/bin/dumb-init /usr/local/bin/dumb-init
+COPY --from=security /usr/bin/dumb-init /usr/bin/dumb-init
 COPY --from=security /sbin/su-exec /sbin/su-exec
 
 # Create non-root user
@@ -51,9 +54,10 @@ WORKDIR /app
 
 # Copy production dependencies from builder
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/lib ./lib
 
 # Copy application code
-COPY --chown=nodejs:nodejs . .
+COPY --chown=nodejs:nodejs mcp-servers/redis/ .
 
 # Create necessary directories with proper permissions
 RUN mkdir -p /app/logs && \

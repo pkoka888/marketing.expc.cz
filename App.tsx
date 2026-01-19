@@ -80,6 +80,249 @@ const ChannelNode = ({ icon: Icon, label, percentage, color }: any) => (
   </div>
 );
 
+const ManualSection = () => {
+  const [language, setLanguage] = useState<'cs' | 'en'>('cs');
+
+  const manualContent = {
+    cs: {
+      title: 'Podrobný manuál pro připojení marketingových kanálů',
+      subtitle: 'Návod pro sdílení přístupů k vašim marketingovým nástrojům',
+      instructions: [
+        {
+          platform: 'Google Ads (Reklamy)',
+          steps: [
+            'Přihlaste se do Google Ads na adrese: https://ads.google.com',
+            'Klikněte na "Nástroje a nastavení" (ikona klíče) v horním menu',
+            'V sekci "Nastavení" zvolte "Přístup a zabezpečení"',
+            'Klikněte na modré tlačítko PLUS (+)',
+            'Vložte email: pavel.kaspar@okamih.cz',
+            'Zvolte úroveň přístupu "SPRÁVCE" (Admin)',
+            'Klikněte na "Odeslat pozvánku"'
+          ],
+          tips: 'Ujistěte se, že poskytujete plný přístup pro efektivní správu vašich kampaní.'
+        },
+        {
+          platform: 'Google Analytics 4 (Měření)',
+          steps: [
+            'Přihlaste se do Google Analytics na adrese: https://analytics.google.com',
+            'Klikněte vlevo dole na ozubené kolo (Správce)',
+            'V prvním sloupci (Účet) klikněte na "Správa přístupu k účtu"',
+            'Klikněte na modré PLUS (+) vpravo nahoře a "Přidat uživatele"',
+            'Zadejte email: pavel.kaspar@okamih.cz',
+            'Zaškrtněte roli "EDITOR" (nebo Administrátor pro plnou kontrolu)',
+            'Klikněte na "Přidat"'
+          ],
+          tips: 'Editor role umožňuje úplnou analýzu dat a tvorbu reportů.'
+        },
+        {
+          platform: 'Google Tag Manager (Měřící kódy)',
+          steps: [
+            'Otevřete GTM na adrese: https://tagmanager.google.com',
+            'Přejděte do záložky "Správce" (Admin)',
+            'V pravém sloupci (Kontejner) zvolte "Správa uživatelů"',
+            'Klikněte na "Nový" (modré +) -> "Přidat uživatele"',
+            'Vložte email: pavel.kaspar@okamih.cz',
+            'V "Oprávnění kontejneru" zaškrtněte vše (Publikovat, Schválit, Upravit, Číst)',
+            'Klikněte na "Pozvat"'
+          ],
+          tips: 'Plná oprávnění jsou nezbytná pro správu měřících kódů a značek.'
+        },
+        {
+          platform: 'Looker Studio (Reporty a grafy)',
+          steps: [
+            'Pokud již máte existující reporty, otevřete daný report',
+            'Vpravo nahoře klikněte na tlačítko "Sdílet"',
+            'Přidejte email: pavel.kaspar@okamih.cz',
+            'Nastavte roli na "EDITOR"',
+            'Klikněte na "Odeslat"'
+          ],
+          tips: 'Tímto získáme přístup k vizualizaci vašich dat a tvorbě reportů.'
+        },
+        {
+          platform: 'Google Search Console (SEO)',
+          steps: [
+            'Přihlaste se do Search Console na adrese: https://search.google.com/search-console',
+            'V menu vlevo sjeďte úplně dolů a klikněte na "Nastavení"',
+            'Zvolte "Uživatelé a oprávnění"',
+            'Klikněte na tlačítko "Přidat uživatele"',
+            'Zadejte email: pavel.kaspar@okamih.cz',
+            'Oprávnění nastavte na "ÚPLNÉ" (Full)',
+            'Potvrďte tlačítkem "Přidat"'
+          ],
+          tips: 'Plný přístup je nezbytný pro SEO optimalizaci a monitorování výkonu.'
+        },
+        {
+          platform: 'Meta (Facebook / Instagram Ads)',
+          steps: [
+            'Otevřete Nastavení firmy (Business Settings) na adrese: https://business.facebook.com/settings',
+            'V sekci "Uživatelé" -> "Lidé" klikněte na "Přidat"',
+            'Vložte email: pavel.kaspar@okamih.cz',
+            'Povolte "Úplnou kontrolu" (Full Control / Admin access)',
+            'V dalším kroku nám přiřaďte přístup k "Stránkám" a "Účtům pro reklamu"'
+          ],
+          tips: 'Ujistěte se, že poskytujete přístup ke všem relevantním stránkám a reklamním účtům.'
+        }
+      ],
+      contact: 'Pro jakékoli otázky nebo potíže nás kontaktujte na: pavel.kaspar@okamih.cz'
+    },
+    en: {
+      title: 'Detailed Manual for Connecting Marketing Channels',
+      subtitle: 'Guide for Sharing Access to Your Marketing Tools',
+      instructions: [
+        {
+          platform: 'Google Ads (Advertising)',
+          steps: [
+            'Log in to Google Ads at: https://ads.google.com',
+            'Click on "Tools and Settings" (key icon) in the top menu',
+            'In the "Settings" section, select "Access and Security"',
+            'Click the blue PLUS (+) button',
+            'Enter email: pavel.kaspar@okamih.cz',
+            'Select access level "ADMIN"',
+            'Click "Send Invitation"'
+          ],
+          tips: 'Make sure to provide full access for effective campaign management.'
+        },
+        {
+          platform: 'Google Analytics 4 (Measurement)',
+          steps: [
+            'Log in to Google Analytics at: https://analytics.google.com',
+            'Click on the gear icon (Admin) in the bottom left',
+            'In the first column (Account), click "Account Access Management"',
+            'Click the blue PLUS (+) button in the top right and "Add User"',
+            'Enter email: pavel.kaspar@okamih.cz',
+            'Check the "EDITOR" role (or Administrator for full control)',
+            'Click "Add"'
+          ],
+          tips: 'Editor role enables complete data analysis and report creation.'
+        },
+        {
+          platform: 'Google Tag Manager (Tracking Codes)',
+          steps: [
+            'Open GTM at: https://tagmanager.google.com',
+            'Go to the "Admin" tab',
+            'In the right column (Container), select "User Management"',
+            'Click "New" (blue +) -> "Add User"',
+            'Enter email: pavel.kaspar@okamih.cz',
+            'In "Container Permissions" check all (Publish, Approve, Edit, Read)',
+            'Click "Invite"'
+          ],
+          tips: 'Full permissions are essential for managing tracking codes and tags.'
+        },
+        {
+          platform: 'Looker Studio (Reports and Charts)',
+          steps: [
+            'If you already have existing reports, open the specific report',
+            'Click the "Share" button in the top right',
+            'Add email: pavel.kaspar@okamih.cz',
+            'Set role to "EDITOR"',
+            'Click "Send"'
+          ],
+          tips: 'This gives us access to visualize your data and create reports.'
+        },
+        {
+          platform: 'Google Search Console (SEO)',
+          steps: [
+            'Log in to Search Console at: https://search.google.com/search-console',
+            'In the left menu, scroll all the way down and click "Settings"',
+            'Select "Users and Permissions"',
+            'Click the "Add User" button',
+            'Enter email: pavel.kaspar@okamih.cz',
+            'Set permissions to "FULL"',
+            'Confirm with "Add"'
+          ],
+          tips: 'Full access is essential for SEO optimization and performance monitoring.'
+        },
+        {
+          platform: 'Meta (Facebook / Instagram Ads)',
+          steps: [
+            'Open Business Settings at: https://business.facebook.com/settings',
+            'In the "Users" -> "People" section, click "Add"',
+            'Enter email: pavel.kaspar@okamih.cz',
+            'Enable "Full Control" (Admin access)',
+            'In the next step, assign us access to "Pages" and "Ad Accounts"'
+          ],
+          tips: 'Make sure to provide access to all relevant pages and advertising accounts.'
+        }
+      ],
+      contact: 'For any questions or issues, contact us at: pavel.kaspar@okamih.cz'
+    }
+  };
+
+  const currentContent = manualContent[language];
+
+  return (
+    <div className="bg-white rounded-[3rem] border border-slate-200/60 p-12 shadow-xl mb-24">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h3 className="text-3xl font-black text-slate-900 mb-2">{currentContent.title}</h3>
+          <p className="text-slate-500 font-medium">{currentContent.subtitle}</p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setLanguage('cs')}
+            className={`px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+              language === 'cs' 
+                ? 'bg-blue-600 text-white shadow-lg' 
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            Česky
+          </button>
+          <button
+            onClick={() => setLanguage('en')}
+            className={`px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+              language === 'en' 
+                ? 'bg-blue-600 text-white shadow-lg' 
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            English
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-12">
+        {currentContent.instructions.map((platform, index) => (
+          <div key={index} className="border-t border-slate-200/60 pt-12">
+            <h4 className="text-2xl font-black text-slate-900 mb-8">{platform.platform}</h4>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2">
+                <ol className="space-y-6">
+                  {platform.steps.map((step, stepIndex) => (
+                    <li key={stepIndex} className="flex gap-6 items-start">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-lg font-black border-2 border-white shadow-lg">
+                        {stepIndex + 1}
+                      </div>
+                      <div className="pt-1 text-slate-700 font-medium text-lg leading-relaxed">
+                        {step}
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center text-white flex-shrink-0 mt-0.5">
+                    💡
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-blue-900 mb-2">Tip:</h5>
+                    <p className="text-blue-800 text-sm leading-relaxed">{platform.tips}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-12 pt-8 border-t border-slate-200/60">
+        <p className="text-slate-600 text-center font-medium">{currentContent.contact}</p>
+      </div>
+    </div>
+  );
+};
+
 // --- MAIN APPLICATION ---
 
 export default function App() {
@@ -341,6 +584,9 @@ export default function App() {
             Pro Gmail uživatele doporučujeme sdílet přímo z hlavní obrazovky (<kbd className="bg-white px-2 py-1 rounded border shadow-sm text-xs font-bold">{os === 'mac' ? 'Green Dot 🟢' : 'Win + ←'}</kbd>).
           </p>
         </div>
+
+        {/* MANUAL SECTION */}
+        <ManualSection />
 
         <div className="space-y-6 mb-24">
           {instructions.map((item) => (

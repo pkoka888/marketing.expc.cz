@@ -4,9 +4,14 @@ services:
     working_dir: /app
     volumes:
       - .:/app
+      - node_modules:/app/node_modules
     ports:
-      - '3000:3000'
-    command: sh -c "npm install && npm run dev"
+      - '3002:3002'
+    command: >
+      sh -c "
+        chown -R node:node /app 2>/dev/null || true;
+        su node -c 'npm install && npm run dev'
+      "
     secrets:
       - gemini_api_key
     environment:
@@ -29,12 +34,16 @@ services:
     command: >
       sh -c "
         apt-get update && apt-get install -y git &&
-        python -m venv .venv &&
-        . .venv/bin/activate &&
-        pip install --upgrade pip &&
-        pip install -r requirements.txt 2>/dev/null || echo 'No requirements.txt found, creating empty one' &&
-        pip install google-generativeai &&
-        echo 'Python service with Gemini CLI ready' &&
+        useradd -u 1000 -m appuser 2>/dev/null || true &&
+        chown -R appuser:appuser /app 2>/dev/null || true &&
+        su appuser -c '
+          python -m venv .venv &&
+          . .venv/bin/activate &&
+          pip install --upgrade pip &&
+          pip install -r requirements.txt 2>/dev/null || echo No requirements.txt &&
+          pip install google-generativeai &&
+          echo Python service ready
+        ' &&
         sleep infinity
       "
     depends_on:
@@ -50,6 +59,14 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme123}
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
     ports:
       - '5432:5432'
     healthcheck:
@@ -88,17 +105,20 @@ services:
       - app-network
 
   mcp-github:
-    image: node:20-alpine
-    working_dir: /app
+    build:
+      context: .
+      dockerfile: mcp-servers/github/Dockerfile
+    image: mcp-github:latest
+    user: "1000:1000"
     volumes:
       - ./mcp-servers/github:/app
+      - /app/node_modules
       - ./lib:/app/lib
       - /app/lib/kilo-code/node_modules
     environment:
       - GITHUB_TOKEN=${GITHUB_TOKEN}
       - API_KEY=${MCP_API_KEY}
-    command: sh -c "npm install && npm start"
-
+    command: npm start
     healthcheck:
       test: [ 'CMD-SHELL', 'ps aux | grep "node server.js" | grep -v grep || exit 1' ]
       interval: 30s
@@ -109,18 +129,21 @@ services:
       - app-network
 
   mcp-monitoring:
-    image: node:20-alpine
-    working_dir: /app
+    build:
+      context: .
+      dockerfile: mcp-servers/monitoring/Dockerfile
+    image: mcp-monitoring:latest
+    user: "1000:1000"
     volumes:
       - ./mcp-servers/monitoring:/app
+      - /app/node_modules
       - ./lib:/app/lib
       - /app/lib/kilo-code/node_modules
     environment:
       - NODE_ENV=production
-    command: sh -c "npm install && npm start"
-
+    command: npm start
     healthcheck:
-      test: [ 'CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1' ]
+      test: [ 'CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/health || exit 1' ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -129,18 +152,21 @@ services:
       - app-network
 
   mcp-playwright:
-    image: node:20-alpine
-    working_dir: /app
+    build:
+      context: .
+      dockerfile: mcp-servers/playwright/Dockerfile
+    image: mcp-playwright:latest
+    user: "1000:1000"
     volumes:
       - ./mcp-servers/playwright:/app
+      - /app/node_modules
       - ./lib:/app/lib
       - /app/lib/kilo-code/node_modules
     environment:
       - NODE_ENV=production
-    command: sh -c "npm install && npm start"
-
+    command: npm start
     healthcheck:
-      test: [ 'CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:8081/health || exit 1' ]
+      test: [ 'CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://127.0.0.1:8081/health || exit 1' ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -149,10 +175,14 @@ services:
       - app-network
 
   mcp-postgresql:
-    image: node:20-alpine
-    working_dir: /app
+    build:
+      context: .
+      dockerfile: mcp-servers/postgresql/Dockerfile
+    image: mcp-postgresql:latest
+    user: "1000:1000"
     volumes:
       - ./mcp-servers/postgresql:/app
+      - /app/node_modules
       - ./lib:/app/lib
       - /app/lib/kilo-code/node_modules
     environment:
@@ -162,10 +192,11 @@ services:
       - DB_NAME=marketingportal
       - DB_USER=marketinguser
       - DB_PASSWORD=${POSTGRES_PASSWORD:-changeme123}
-    command: sh -c "npm install && npm start"
-
+      - RETRY_MAX_ATTEMPTS=20
+      - RETRY_BASE_DELAY=3000
+    command: npm start
     healthcheck:
-      test: [ 'CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1' ]
+      test: [ 'CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://127.0.0.1:3001/health || exit 1' ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -177,18 +208,21 @@ services:
       - app-network
 
   mcp-redis:
-    image: node:20-alpine
-    working_dir: /app
+    build:
+      context: .
+      dockerfile: mcp-servers/redis/Dockerfile
+    image: mcp-redis:latest
+    user: "1000:1000"
     volumes:
       - ./mcp-servers/redis:/app
+      - /app/node_modules
       - ./lib:/app/lib
       - /app/lib/kilo-code/node_modules
     environment:
       - NODE_ENV=production
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-    command: sh -c "npm install && npm start"
-
+    command: npm start
     healthcheck:
       test: [ 'CMD-SHELL', 'ps aux | grep "node server.js" | grep -v grep || exit 1' ]
       interval: 30s
@@ -223,7 +257,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     ports:
-      - '3001:3000'
+      - '3002:3000'
     volumes:
       - grafana-data:/var/lib/grafana
     environment:
@@ -234,6 +268,7 @@ services:
       - app-network
 
 volumes:
+  node_modules:
   python-venv:
   postgres-data:
   redis-data:

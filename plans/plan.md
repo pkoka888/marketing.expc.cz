@@ -324,6 +324,10 @@ Key topics, APIs, needs, tools extracted from actual app codebase:
 - Implement Terraform for infrastructure as code
 - Set up PostgreSQL with automated backups
 - Configure Envoy as API gateway
+- **COMPLETED**: Docker Setup with Multi-stage builds and specialized MCP servers.
+  - Fixed PostgreSQL listener binding to '\*'.
+  - Updated MCP healthchecks to use 127.0.0.1 (IPv4).
+  - Implemented robust startup and retry logic for MCP servers.
 
 ### Phase 2: Security Implementation (Q2 2025)
 

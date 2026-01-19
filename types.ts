@@ -7,6 +7,7 @@ export interface InstructionItem {
   title: string;
   icon?: ReactNode;
   steps: string[];
+  directLink?: string;
 }
 
 export interface ClientData {

@@ -1,0 +1,212 @@
+{
+  "folders": [
+    {
+      "path": ".",
+      "name": "MarketingPortal"
+    }
+  ],
+  "settings": {
+    // TypeScript Configuration
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "typescript.suggest.autoImports": true,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "typescript.tsdk": "node_modules/typescript/lib",
+
+    // Editor Configuration
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit",
+      "source.organizeImports": "explicit"
+    },
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+
+    // Prettier Configuration
+    "prettier.configPath": ".prettierrc.json",
+    "prettier.requireConfig": true,
+
+    // ESLint Configuration
+    "eslint.workingDirectories": ["."],
+    "eslint.validate": [
+      "javascript",
+      "javascriptreact",
+      "typescript",
+      "typescriptreact"
+    ],
+
+    // File Associations
+    "files.associations": {
+      "*.tsx": "typescriptreact",
+      "*.ts": "typescript",
+      "*.js": "javascript",
+      "*.jsx": "javascriptreact"
+    },
+
+    // File Exclusions
+    "files.exclude": {
+      "**/.git": true,
+      "**/.DS_Store": true,
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.cline/logs": true,
+      "**/.cline/archive": true
+    },
+
+    // Search Exclusions
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.git": true,
+      "**/.cline/logs": true,
+      "**/.cline/archive": true,
+      "**/*.log": true
+    },
+
+    // Terminal Configuration
+    "terminal.integrated.shell.windows": "C:\\Windows\\System32\\cmd.exe",
+
+    // Git Configuration
+    "git.autofetch": true,
+    "git.enableSmartCommit": true,
+
+    // Docker Configuration
+    "docker.showStartPage": false
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "Debug MarketingPortal (Dev)",
+        "runtimeExecutable": "npm",
+        "runtimeArgs": ["run", "dev"],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "openOnSessionStart",
+        "skipFiles": [
+          "<node_internals>/**",
+          "node_modules/**"
+        ]
+      },
+      {
+        "type": "node",
+        "request": "attach",
+        "name": "Attach to MarketingPortal",
+        "port": 9229,
+        "restart": true,
+        "skipFiles": [
+          "<node_internals>/**",
+          "node_modules/**"
+        ]
+      }
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Start Infrastructure",
+        "type": "shell",
+        "command": "docker-compose",
+        "args": ["up", "-d"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Stop Infrastructure",
+        "type": "shell",
+        "command": "docker-compose",
+        "args": ["down"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Check Infrastructure Status",
+        "type": "shell",
+        "command": "docker-compose",
+        "args": ["ps"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Install Dependencies",
+        "type": "shell",
+        "command": "npm",
+        "args": ["install"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Run Tests",
+        "type": "shell",
+        "command": "npm",
+        "args": ["test"],
+        "group": "test",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": "$eslint-stylish"
+      }
+    ]
+  },
+  "extensions": {
+    "recommendations": [
+      // Core Development
+      "ms-vscode.vscode-typescript-next",
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+      "bradlc.vscode-tailwindcss",
+
+      // Docker & Containers
+      "ms-azuretools.vscode-docker",
+      "ms-vscode-remote.remote-containers",
+
+      // Git & Version Control
+      "eamodio.gitlens",
+      "mhutchie.git-graph",
+
+      // Testing
+      "ms-playwright.playwright",
+
+      // Utilities
+      "ms-vscode.vscode-json",
+      "redhat.vscode-yaml",
+      "ms-vscode-remote.remote-ssh",
+
+      // React Development
+      "ms-vscode.vscode-js-profile-flame",
+      "formulahendry.auto-rename-tag",
+      "christian-kohler.path-intellisense"
+    ],
+    "unwantedRecommendations": [
+      // Exclude Antigravity and other non-standard extensions
+      "antigravity.vscode-antigravity"
+    ]
+  }
+}

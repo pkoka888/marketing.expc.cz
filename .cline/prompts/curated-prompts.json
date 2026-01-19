@@ -1,0 +1,190 @@
+{
+  "version": "1.0.0",
+  "patterns": {
+    "token-efficient": {
+      "name": "Token Efficient",
+      "description": "Optimized for minimal token usage while maintaining quality",
+      "patterns": [
+        {
+          "id": "concise-instruction",
+          "template": "Task: {task}\nContext: {context}\nFormat: {format}\nConstraints: {constraints}",
+          "maxTokens": 150,
+          "useCases": [
+            "simple tasks",
+            "quick queries",
+            "limited context"
+          ]
+        },
+        {
+          "id": "structured-response",
+          "template": "Task: {task}\nSteps:\n1. {step1}\n2. {step2}\n3. {step3}\nOutput: {output_format}",
+          "maxTokens": 200,
+          "useCases": [
+            "step-by-step tasks",
+            "procedural instructions"
+          ]
+        }
+      ]
+    },
+    "comprehensive": {
+      "name": "Comprehensive",
+      "description": "Detailed prompts for complex tasks requiring thorough analysis",
+      "patterns": [
+        {
+          "id": "detailed-analysis",
+          "template": "Task: {task}\n\nContext:\n{context}\n\nRequirements:\n{requirements}\n\nConstraints:\n{constraints}\n\nExpected Output:\n{output_format}\n\nSuccess Criteria:\n{success_criteria}",
+          "maxTokens": 500,
+          "useCases": [
+            "complex analysis",
+            "detailed planning",
+            "comprehensive reviews"
+          ]
+        },
+        {
+          "id": "multi-step-process",
+          "template": "Task: {task}\n\nPhase 1 - Analysis:\n{phase1}\n\nPhase 2 - Implementation:\n{phase2}\n\nPhase 3 - Validation:\n{phase3}\n\nDeliverables:\n{deliverables}",
+          "maxTokens": 600,
+          "useCases": [
+            "multi-phase projects",
+            "complex implementations"
+          ]
+        }
+      ]
+    },
+    "agent-specific": {
+      "name": "Agent Specific",
+      "description": "Optimized prompts for specific agent modes",
+      "patterns": [
+        {
+          "id": "architect-planning",
+          "template": "Role: Chief Architect\nTask: {task}\n\nProject Context:\n{project_context}\n\nTechnical Requirements:\n{tech_requirements}\n\nConstraints:\n{constraints}\n\nSuccess Metrics:\n{success_metrics}\n\nOutput Format: JSON with task breakdown and validation criteria",
+          "maxTokens": 400,
+          "agentMode": "architect-orchestrator",
+          "useCases": [
+            "project planning",
+            "architecture design",
+            "technical coordination"
+          ]
+        },
+        {
+          "id": "frontend-development",
+          "template": "Role: Frontend Engineer\nTask: {task}\n\nTechnology Stack: React 19, TypeScript, CSS-in-JS\n\nRequirements:\n{requirements}\n\nPerformance Constraints:\n{performance_constraints}\n\nAccessibility Requirements:\n{accessibility_requirements}\n\nOutput Format: React components with tests and documentation",
+          "maxTokens": 350,
+          "agentMode": "frontend-engineer",
+          "useCases": [
+            "component development",
+            "UI implementation",
+            "frontend optimization"
+          ]
+        },
+        {
+          "id": "backend-development",
+          "template": "Role: Backend Engineer\nTask: {task}\n\nTechnology Stack: Node.js, PostgreSQL, Redis\n\nDatabase Requirements:\n{db_requirements}\n\nAPI Specifications:\n{api_specs}\n\nSecurity Constraints:\n{security_constraints}\n\nOutput Format: API specifications, database schemas, service implementations",
+          "maxTokens": 400,
+          "agentMode": "backend-engineer",
+          "useCases": [
+            "API development",
+            "database design",
+            "backend services"
+          ]
+        }
+      ]
+    },
+    "context-aware": {
+      "name": "Context Aware",
+      "description": "Prompts that adapt based on available context and constraints",
+      "patterns": [
+        {
+          "id": "adaptive-complexity",
+          "template": "Task: {task}\n\nAvailable Context: {context_availability}\n\nToken Budget: {token_budget}\n\nComplexity Level: {complexity_level}\n\nRequired Detail: {detail_level}\n\nOutput Format: {output_format}",
+          "maxTokens": 300,
+          "useCases": [
+            "variable context scenarios",
+            "adaptive responses"
+          ]
+        },
+        {
+          "id": "progressive-disclosure",
+          "template": "Task: {task}\n\nPhase 1 - Summary: {summary}\n\nPhase 2 - Details: {details}\n\nPhase 3 - Implementation: {implementation}\n\nToken Budget: {token_budget}",
+          "maxTokens": 400,
+          "useCases": [
+            "complex tasks with limited context",
+            "progressive information delivery"
+          ]
+        }
+      ]
+    }
+  },
+  "bestPractices": [
+    {
+      "category": "clarity",
+      "practices": [
+        "Use clear, specific task descriptions",
+        "Define expected output format explicitly",
+        "Include success criteria and validation rules",
+        "Avoid ambiguous language and assumptions"
+      ]
+    },
+    {
+      "category": "context",
+      "practices": [
+        "Provide relevant project context",
+        "Include technology stack and constraints",
+        "Specify dependencies and prerequisites",
+        "Mention integration points and interfaces"
+      ]
+    },
+    {
+      "category": "token-efficiency",
+      "practices": [
+        "Use concise but complete instructions",
+        "Structure information hierarchically",
+        "Avoid redundant explanations",
+        "Use placeholders for variable content"
+      ]
+    },
+    {
+      "category": "validation",
+      "practices": [
+        "Include specific validation criteria",
+        "Define test cases and edge cases",
+        "Specify quality metrics and benchmarks",
+        "Include rollback and error handling requirements"
+      ]
+    }
+  ],
+  "antiPatterns": [
+    {
+      "name": "Vague Instructions",
+      "description": "Too general or ambiguous task descriptions",
+      "examples": [
+        "Bad: \"Implement a feature\"",
+        "Good: \"Implement user authentication with JWT tokens\""
+      ]
+    },
+    {
+      "name": "Missing Context",
+      "description": "Lack of necessary project or technical context",
+      "examples": [
+        "Bad: \"Build an API\"",
+        "Good: \"Build a REST API for user management using Node.js and PostgreSQL\""
+      ]
+    },
+    {
+      "name": "Overly Complex",
+      "description": "Too much detail or complexity for the task",
+      "examples": [
+        "Bad: 1000+ token prompt for simple task",
+        "Good: 200-300 token prompt with essential details"
+      ]
+    },
+    {
+      "name": "Inconsistent Format",
+      "description": "Mixed formatting and unclear structure",
+      "examples": [
+        "Bad: Unstructured text without clear sections",
+        "Good: Structured with clear headings and sections"
+      ]
+    }
+  ]
+}

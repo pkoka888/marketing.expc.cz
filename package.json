@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "jest",
+    "test:unit": "jest --testPathPattern=unit",
+    "test:e2e": "playwright test",
+    "test:agents": "node scripts/test-agents.js"
   },
   "dependencies": {
     "lucide-react": "^0.562.0",
@@ -16,6 +20,7 @@
   "devDependencies": {
     "@kilo-code/error-handling": "file:lib/kilo-code",
     "@playwright/test": "^1.57.0",
+    "@types/jest": "^29.5.0",
     "@types/node": "^22.14.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
@@ -24,8 +29,10 @@
     "eslint-plugin-react": "^7.35.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.9",
+    "jest": "^29.7.0",
     "marketingportal-onboarding": "file:",
     "prettier": "^3.3.0",
+    "ts-jest": "^29.1.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }
